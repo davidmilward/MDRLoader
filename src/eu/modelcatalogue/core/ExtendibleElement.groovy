@@ -1,6 +1,6 @@
 package eu.modelcatalogue.core
 
-import uk.co.mc.core.util.ExtendibleElementExtensionsWrapper
+//import uk.co.mc.core.util.ExtendibleElementExtensionsWrapper
 
 /*
 *
@@ -14,7 +14,7 @@ abstract class ExtendibleElement extends PublishedElement {
     static hasMany = [extensions: ExtensionValue]
     static transients = ['ext']
 
-    Map<String, String> ext = new ExtendibleElementExtensionsWrapper(this)
+    //Map<String, String> ext = new ExtendibleElementExtensionsWrapper(this)
 
     String toString() {
         "${getClass().simpleName}[id: ${id}, name: ${name}, extensions: ${extension}]"

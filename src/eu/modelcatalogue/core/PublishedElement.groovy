@@ -10,7 +10,7 @@ abstract class PublishedElement extends CatalogueElement{
     //it's version number is updated and any subsequent update will
     //be mean that the element is superceded. We will provide a supercede function
     //to do this
-    PublishedElementStatus status = PublishedElementStatus.DRAFT
+    //PublishedElementStatus status = PublishedElementStatus.DRAFT
 
     static constraints = {
 
