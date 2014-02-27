@@ -33,6 +33,10 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
        List sList = schema.getSimpleElements()
        List elements = sList.collect{ makeDEVD(it)  }
 
+       def models = []
+        ModelBuilder  mb = ModelBuilder(schema)
+        models = mb.getMDRModels()
+
 
 
     }
