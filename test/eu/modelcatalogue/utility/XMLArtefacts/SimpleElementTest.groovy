@@ -1,4 +1,4 @@
-package eu.modelcatalogue.utility.XSMLSchema
+package eu.modelcatalogue.utility.XMLArtefacts
 
 /**
  * Created by davidmilward on 26/02/2014.

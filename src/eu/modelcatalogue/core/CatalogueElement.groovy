@@ -1,6 +1,6 @@
 package eu.modelcatalogue.core
 
-import grails.util.GrailsNameUtils
+//import grails.util.GrailsNameUtils
 import org.apache.commons.lang.builder.EqualsBuilder
 import org.apache.commons.lang.builder.HashCodeBuilder
 
@@ -15,6 +15,9 @@ abstract class CatalogueElement {
 
     String name
     String description
+    Integer id
+    String version
+    String status
 
     static hasMany = [incomingRelationships: Relationship, outgoingRelationships: Relationship]
 
@@ -99,7 +102,7 @@ abstract class CatalogueElement {
         [
                 id: id,
                 name: name,
-                link: "/${GrailsNameUtils.getPropertyName(getClass())}/$id"
+                link: "$id"
         ]
     }
 

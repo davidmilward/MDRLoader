@@ -1,20 +1,19 @@
-package eu.modelcatalogue.utility.XSMLSchema
+package eu.modelcatalogue.utility.XMLArtefacts
 
 /**
  * Created by davidmilward on 26/02/2014.
  */
-class SimpleElement {
+class ComplexElement extends SimpleElement{
 
+    boolean bAbstract = false;
+    boolean bMixed = false;
     Map attributeStore
     List simpleElements
     List typeEnumerations
     Integer reference
-    String sType
-    String name
-    String restrictionBase
-    StringBuffer content
 
-    SimpleElement(){
+
+    ComplexElement(){
         attributeStore = new HashMap()
         typeEnumerations = new ArrayList()
         reference = 0
@@ -22,20 +21,12 @@ class SimpleElement {
         simpleElements = new ArrayList()
     }
 
-    void addContent(String newContent){
-        content.append(newContent)
-    }
-
-    String getContent(){
-        return content.toString()
-    }
-
     void addAttribute(String name, String value){
         attributeStore.put(name, value)
     }
 
     String getNamedAttribute(String key){
-       return attributeStore.get(key)
+        return attributeStore.get(key)
     }
 
     void addEnumItem(String item){

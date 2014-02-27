@@ -3,16 +3,12 @@ package eu.modelcatalogue.utility
 import eu.modelcatalogue.core.DataElement
 import eu.modelcatalogue.core.Model
 import eu.modelcatalogue.core.ValueDomain
-import eu.modelcatalogue.utility.XSMLSchema.ComplexElement
-
-import javax.xml.parsers.SAXParser
-import javax.xml.parsers.SAXParserFactory
-import org.xml.sax.helpers.DefaultHandler
+import eu.modelcatalogue.utility.XMLArtefacts.XMLAttribute
+import eu.modelcatalogue.utility.XMLArtefacts.XMLElement
 import org.xml.sax.*
-import eu.modelcatalogue.utility.XSMLSchema.XMLSchemamc
-import eu.modelcatalogue.utility.XSMLSchema.SimpleElement
-import eu.modelcatalogue.utility.XSMLSchema.ComplexElement
-import eu.modelcatalogue.utility.XSMLSchema.Restriction
+import eu.modelcatalogue.utility.XMLArtefacts.XMLSchema
+import eu.modelcatalogue.utility.XMLArtefacts.SimpleElement
+import eu.modelcatalogue.utility.XMLArtefacts.XMLRestriction
 
 /**
  * Created by davidmilward on 25/02/2014.
@@ -29,15 +25,13 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
 
     void buildModels(){
 
-       XMLSchemamc schema =  this.currentSchema
-       List sList = schema.getSimpleElements()
-       List elements = sList.collect{ makeDEVD(it)  }
+       XMLSchema schema =  this.currentSchema
+       //List sList = schema.getSimpleElements()
+       //List elements = sList.collect{ makeDEVD(it)  }
 
        def models = []
-        ModelBuilder  mb = ModelBuilder(schema)
-        models = mb.getMDRModels()
-
-
+        ModelBuilder  mb = new ModelBuilder(schema)
+        models = mb.getMDRModelsFromSchema()
 
     }
 
@@ -55,54 +49,58 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
     void startElement(String ns, String localName, String qName, Attributes attrs) {
         switch (qName) {
             case 'xs:schema':
-                XMLSchemamc xmlSchema = setSchemaAttributes(attrs)
+                XMLSchema xmlSchema = setSchemaAttributes(attrs)
                 currentSchema = xmlSchema
                 currentElement = xmlSchema
                 stack.push(xmlSchema)
                 break
             case 'xs:element':
-                SimpleElement element = setSimpleElementAttributes(attrs)
+                XMLElement element = setElementAttributes(attrs)
                 currentElement.addElement(element)
                 currentElement = element
                 stack.push(element)
 
                 break
             case 'xs:simpletype':
-                SimpleElement stDE = setSimpleElementAttributes(attrs)
+                XMLElement stDE = setElementAttributes(attrs)
                 currentElement.addElement(stDE)
                 currentElement = stDE
                 stack.push(stDE)
                 break
             case 'xs:restriction':
-                SimpleElement restDE = new SimpleElement()
-                currentElement.addElement(restDE)
+                XMLRestriction restDE = setRestrictionAttributes(attrs)
+                currentElement.addRestriction(restDE)
                 currentElement = restDE
                 stack.push(restDE)
                 break
             case 'xs:include':
-                SimpleElement includeDE = setSimpleElementAttributes(attrs)
+                XMLElement includeDE = setElementAttributes(attrs)
                 currentElement.addElement(includeDE)
                 currentElement = includeDE
                 stack.push(includeDE)
                 break
             case 'xs:complexType':
-                ComplexElement ctDE = setComplexAttributes(attrs)
+                XMLElement ctDE = setComplexAttributes(attrs)
                 currentElement.addElement(ctDE)
                 currentElement = ctDE
                 stack.push(ctDE)
 
                 break
             case 'xs:sequence':
-                SimpleElement seqDE = setSimpleElementAttributes(attrs)
+                XMLElement seqDE = setElementAttributes(attrs)
                 currentElement.addElement(seqDE)
                 currentElement = seqDE
                 stack.push(seqDE)
 
                 break
+            case 'xs:attribute':
+                XMLAttribute seqDE = getAttribute(attrs)
+                currentElement.addElementAttribute(seqDE)
+                currentElement = seqDE
+                stack.push(seqDE)
+                break
             default :
                 break
-
-
 
         }
     }
@@ -141,15 +139,19 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
                 stack.pop()
                 currentElement = stack.last()
                 break
+            case 'xs:attribute':
+                stack.pop()
+                currentElement = stack.last()
+                break
             default :
                 break
         }
     }
 
 
-    XMLSchemamc setSchemaAttributes(Attributes attrs){
+    XMLSchema setSchemaAttributes(Attributes attrs){
         elemCntr++;
-        XMLSchemamc se = new XMLSchemamc()
+        XMLSchema se = new XMLSchema()
         String truncatedKey = "";
         Map hm = new HashMap<String, String>();
         if (attrs != null) {
@@ -176,11 +178,11 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
 
                 switch (key) {
                     case "targetNamespace":
-                        se.setTargetNameSpace(value);
-                        break;
+                        se.setTargetNameSpace(value)
+                        break
                     case "elementFormDefault":
-                        se.setElementFormDefault(value);
-                        break;
+                        se.setElementFormDefault(value)
+                        break
                     case "attributeFormDefault":
                         se.setAttributeFormDefault(value);
                         break;
@@ -205,35 +207,71 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
         return se;
     }
 
-    public SimpleElement setSimpleElementAttributes( Attributes attrs){
+    public XMLElement setElementAttributes( Attributes attrs){
         elemCntr++;
-        SimpleElement se = new SimpleElement();
+        XMLElement se = new XMLElement();
+        //se.setsType(XMLTypeConstants.XML_STRING)
         Map attrsMap = new HashMap<String, String>();
         if (attrs != null) {
             int len = attrs.getLength();
             for (int i = 0; i < len; i++) {
                 attrsMap.put(attrs.getLocalName(i), attrs.getValue(i));
+                se.addSchemaAttribute(attrs.getLocalName(i), attrs.getValue(i))
             }
             Set<?> hmSet = attrsMap.entrySet();
             Iterator<?> ith = hmSet.iterator();
             while(ith.hasNext()) {
                 @SuppressWarnings("rawtypes")
                 Map.Entry me = (Map.Entry)ith.next();
-                println "SIMPLE ELEMENT key=" + me.getKey() + ":value=" + me.getValue();
+                println "ELEMENT key=" + me.getKey() + ":value=" + me.getValue();
             }
-            se.setAttributeStore(attrsMap)
+            Map attributes = se.schemaAttributeMap
+            attributes.each {
+                println "....attributes = " +it
+                if(it.getKey() == "name"){
+                    se.setName(it.getValue())
+                }else if(it.getKey() == "type"){
+                    se.setsType(it.getValue())
+                }
+
+
+            }
         }
         return se;
     }
 
-    public SimpleElement setAttributes( Attributes attrs){
+    public XMLAttribute getAttribute( Attributes attrs){
         elemCntr++;
-        SimpleElement se = new SimpleElement();
+        XMLAttribute se = new XMLElement();
+        //se.setsType(XMLTypeConstants.XML_STRING)
         Map attrsMap = new HashMap<String, String>();
         if (attrs != null) {
             int len = attrs.getLength();
             for (int i = 0; i < len; i++) {
                 attrsMap.put(attrs.getLocalName(i), attrs.getValue(i));
+                se.addSchemaAttribute(attrs.getLocalName(i), attrs.getValue(i))
+            }
+            Set<?> hmSet = attrsMap.entrySet();
+            Iterator<?> ith = hmSet.iterator();
+            while(ith.hasNext()) {
+                @SuppressWarnings("rawtypes")
+                Map.Entry me = (Map.Entry)ith.next();
+                println "ELEMENT key=" + me.getKey() + ":value=" + me.getValue();
+            }
+            //se.set(attrsMap)
+        }
+        return se;
+    }
+
+    public XMLElement setAttributes( Attributes attrs){
+        elemCntr++;
+        XMLElement se = new XMLElement();
+        Map attrsMap = new HashMap<String, String>();
+        if (attrs != null) {
+            int len = attrs.getLength();
+            for (int i = 0; i < len; i++) {
+                attrsMap.put(attrs.getLocalName(i), attrs.getValue(i));
+                se.addSchemaAttribute(attrs.getLocalName(i), attrs.getValue(i))
             }
             Set<?> hmSet = attrsMap.entrySet();
             Iterator<?> ith = hmSet.iterator();
@@ -241,19 +279,20 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
                 Map.Entry me = (Map.Entry)ith.next();
                 //o.println("key=" + me.getKey() + ":value=" + me.getValue());
             }
-            se.setAttributeStore(attrsMap);
+           // se.setAttributeStore(attrsMap);
         }
         return se;
     }
 
-    public ComplexElement setComplexAttributes( Attributes attrs){
+    public XMLElement setComplexAttributes( Attributes attrs){
         elemCntr++;
-        ComplexElement ce = new ComplexElement();
+        XMLElement ce = new XMLElement();
         Map attrsMap = new HashMap<String, String>();
         if (attrs != null) {
             int len = attrs.getLength();
             for (int i = 0; i < len; i++) {
                 attrsMap.put(attrs.getLocalName(i), attrs.getValue(i));
+                ce.addSchemaAttribute(attrs.getLocalName(i), attrs.getValue(i))
             }
             Set<?> hmSet = attrsMap.entrySet();
             Iterator<?> ith = hmSet.iterator();
@@ -274,19 +313,20 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
                         ce.setMixed((String)me.getValue());
                 }
             }
-            ce.setAttributeStore(attrsMap);
+            //ce.setAttributeStore(attrsMap);
         }
         return ce;
     }
 
-    public Restriction setRestrictionAttributes( Attributes attrs){
+    public XMLRestriction setRestrictionAttributes( Attributes attrs){
         elemCntr++;
-        Restriction re = new Restriction();
+        XMLRestriction re = new XMLRestriction();
         Map attrsMap = new HashMap<String, String>();
         if (attrs != null) {
             int len = attrs.getLength();
             for (int i = 0; i < len; i++) {
                 attrsMap.put(attrs.getLocalName(i), attrs.getValue(i));
+                re.addSchemaAttribute(attrs.getLocalName(i), attrs.getValue(i))
             }
             Set<?> hmSet = attrsMap.entrySet();
             Iterator<?> ith = hmSet.iterator();
@@ -295,7 +335,7 @@ public class MDRLoader extends org.xml.sax.helpers.DefaultHandler{
                 Map.Entry me = (Map.Entry)ith.next();
                 //o.println("key=" + me.getKey() + ":value=" + me.getValue());
             }
-            re.setAttributeStore(attrsMap);
+            //re.setAttributeStore(attrsMap);
         }
         return re;
 
