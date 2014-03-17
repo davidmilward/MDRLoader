@@ -1,6 +1,6 @@
 package eu.modelcatalogue.core
 
-//import grails.util.GrailsNameUtils
+//  import grails.util.GrailsNameUtils
 import org.apache.commons.lang.builder.EqualsBuilder
 import org.apache.commons.lang.builder.HashCodeBuilder
 
