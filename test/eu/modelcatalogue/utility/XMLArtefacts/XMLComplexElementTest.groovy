@@ -4,12 +4,17 @@ package eu.modelcatalogue.utility.XMLArtefacts
  * Created by davidmilward on 03/03/2014.
  */
 class XMLComplexElementTest extends GroovyTestCase {
+    XMLComplexElement comElement
+
     void setUp() {
         super.setUp()
+        comElement = new XMLComplexElement()
+        comElement.addSchemaAttribute("","")
 
     }
 
     void testAddSchemaAttribute() {
+
 
     }
 

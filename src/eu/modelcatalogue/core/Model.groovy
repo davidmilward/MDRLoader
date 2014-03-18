@@ -5,7 +5,22 @@ import org.apache.commons.lang.builder.HashCodeBuilder
 
 class Model extends ExtendibleElement  {
 
+    String modelConstraint
+
     static transients = ['contains', 'hasContextOf', 'parentOf', 'childOf']
+
+    ArrayList<Model> childModels  = new ArrayList<Model>()
+    ArrayList<Model> modelContainer  = new ArrayList<Model>()
+    //DM add-on start
+
+    void addToModelContainer(Model mdl){
+        modelContainer.add(mdl)
+    }
+
+
+
+    //DM add-on finsih
+
 
     //CONTAINMENT
 

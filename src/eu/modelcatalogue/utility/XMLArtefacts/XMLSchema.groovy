@@ -7,6 +7,8 @@ class XMLSchema extends XMLElement {
 
     Map nameSpaces
     List complexElements
+    List simpletypes
+    List imports
 
     String targetNameSpace
     String elementFormDefault
@@ -15,6 +17,28 @@ class XMLSchema extends XMLElement {
     String finalDefault
     String schemaVersion
     String schemaId
+
+    XMLSchema(){
+        imports = new ArrayList<String>()
+        complexElements = new ArrayList<XMLElement>()
+        simpletypes = new ArrayList<XMLElement>()
+        nameSpaces = new HashMap<String, String>()
+    }
+
+    void addElement(XMLComplexElement ce){
+        complexElements.add(ce)
+    }
+
+    void addElement(XMLSimpleType st){
+        simpletypes.add(st)
+    }
+
+    void addImportLocation(String sloc){
+        imports.add(sloc)
+    }
+    List getImportLocations(){
+        return imports
+    }
 
     void addNameSpace(String key,String value){
         nameSpaces.put(key, value)
